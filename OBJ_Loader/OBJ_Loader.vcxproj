@@ -138,7 +138,6 @@
     <ClInclude Include="include\gl_core_4_4.h" />
     <ClInclude Include="include\Keyboard.h" />
     <ClInclude Include="include\Mouse.h" />
-    <ClInclude Include="include\RenderingGeometryApp.h" />
     <ClInclude Include="include\Timer.h" />
     <ClInclude Include="include\OBJLoaderApp.h" />
   </ItemGroup>
@@ -151,7 +150,6 @@
     <ClCompile Include="source\main.cpp" />
     <ClCompile Include="source\Mouse.cpp" />
     <ClCompile Include="source\OBJLoaderApp.cpp" />
-    <ClCompile Include="source\RenderingGeometryApp.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

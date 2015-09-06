@@ -12,11 +12,6 @@ using glm::mat4;
 
 typedef unsigned int uint;
 
-struct Vertex
-{
-	vec4 position;
-	vec4 color;
-};
 
 class OBJLoaderApp : public GameApp
 {
@@ -54,9 +49,6 @@ private:
 	std::vector<tinyobj::material_t> materials;
 	uint mShaderProgramID = 0;
 	std::vector<GLInfo> mGLInfo;
-	const uint ROWS = 25;
-	const uint COLS = 25;
 	void InitCamera();
 	void CreateOpenGLBuffers(std::vector<tinyobj::shape_t>& shapes);
 };
-#pragma once
