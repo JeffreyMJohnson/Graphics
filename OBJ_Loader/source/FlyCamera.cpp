@@ -5,6 +5,7 @@ FlyCamera::FlyCamera(GLFWwindow* window)
 {
 	mWindow = window;
 	Mouse::Init();
+	Mouse::SetMode(Mouse::Cursor_Mode::DISABLED);
 	Keyboard::Init();
 }
 
@@ -41,6 +42,7 @@ void FlyCamera::Translate(glm::vec3 distance)
 
 void FlyCamera::Update(float deltaTime)
 {
+	//Mouse::Update();
 	glm::vec3 direction = glm::vec3(0);
 	if (Keyboard::IsKeyPressed(Keyboard::KEY_W) || Keyboard::IsKeyRepeat(Keyboard::KEY_W))
 	{
@@ -63,16 +65,27 @@ void FlyCamera::Update(float deltaTime)
 
 	if (Mouse::IsButtonPressed(Mouse::LEFT))
 	{
-		if (Mouse::GetPosDeltaX() != 0)
-		{
-			Rotate(glm::radians(deltaTime * mRotSpeed * Mouse::GetPosDeltaX()), glm::vec3(0, 1, 0));
-		}
-		if (Mouse::GetPosDeltaY() != 0)
-		{
-			Rotate(glm::radians(deltaTime * mRotSpeed * Mouse::GetPosDeltaY()), glm::vec3(1, 0, 0));
-		}
+
+		Rotate(glm::radians(deltaTime * mRotSpeed * Mouse::GetPosX()), glm::vec3(0, 1, 0));
+		//Rotate(glm::radians(deltaTime * mRotSpeed * Mouse::GetYDirection()), glm::vec3(1, 0, 0));
+		using namespace std;
+		//cout << "deltaX: " << Mouse::GetPosDeltaX() << endl;
+
+		//int xDirection = 0;
+		//int yDirection = 0;
+		//if(Mouse::GetPosDeltaX() >)
+
+		//if ((int)Mouse::GetPosDeltaX() != 0)
+		//{
+		//	
+		//}
+		//if ((int)Mouse::GetPosDeltaY() != 0)
+		//{
+		//	Rotate(glm::radians(deltaTime * mRotSpeed * Mouse::GetPosDeltaY()), glm::vec3(1, 0, 0));
+		//}
 
 	}
+	std::cout << "posX: " << Mouse::GetPosX() << std::endl;
 	//std::cout << "W: " << Keyboard::IsKeyPressed(Keyboard::KEY_W) << std::endl;
 	//std::cout << "x: " << Mouse::GetPrevPosX() << std::endl;
 }
