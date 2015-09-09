@@ -3,6 +3,10 @@
 
 double Mouse::posX = 0;
 double Mouse::posY = 0;
+double Mouse::prevPosX = 0;
+double Mouse::prevPosY = 0;
+int Mouse::directionX = 0;
+int Mouse::directionY = 0;
 //int Mouse::xDirection = 0;
 //int Mouse::yDirection = 0;
 double Mouse::scrollX = 0;
@@ -17,10 +21,6 @@ void Mouse::Init()
 	glfwSetCursorPosCallback(glfwGetCurrentContext(), cursor_pos_callback);
 }
 
-void Mouse::Update(float deltaTime)
-{
-
-}
 
 bool Mouse::IsButtonPressed(Button button)
 {
