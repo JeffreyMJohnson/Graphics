@@ -26,7 +26,6 @@ public:
 	};
 
 	static void Init();
-	static void Update(float deltaTime);
 
 	static bool IsButtonPressed(Button button);
 	static bool IsButtonReleased(Button button);
@@ -42,6 +41,8 @@ public:
 private:
 	static double scrollX, scrollY;
 	static double posX, posY;
+	static double prevPosX, prevPosY;
+	static int directionX, directionY;
 	static Cursor_Mode mode;
 	static int buttonState[];
 	static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
