@@ -1,31 +1,50 @@
 #include "Mouse.h"
+#include <iostream>
 
 double Mouse::posX = 0;
 double Mouse::posY = 0;
-double Mouse::prevPosX = 0;
-double Mouse::prevPosY = 0;
-double Mouse::posDeltaX = 0;
-double Mouse::posDeltaY = 0;
+//int Mouse::xDirection = 0;
+//int Mouse::yDirection = 0;
 double Mouse::scrollX = 0;
 double Mouse::scrollY = 0;
-int Mouse::GLFWButtonCodes[3] = { GLFW_MOUSE_BUTTON_LEFT, GLFW_MOUSE_BUTTON_RIGHT, GLFW_MOUSE_BUTTON_MIDDLE };
+Mouse::Cursor_Mode Mouse::mode = Cursor_Mode::NORMAL;
+int Mouse::buttonState[3];
 
 void Mouse::Init()
 {
+	glfwSetMouseButtonCallback(glfwGetCurrentContext(), mouse_button_callback);
 	glfwSetScrollCallback(glfwGetCurrentContext(), scroll_callback);
 	glfwSetCursorPosCallback(glfwGetCurrentContext(), cursor_pos_callback);
 }
 
-void Mouse::Update()
+void Mouse::Update(float deltaTime)
 {
-	prevPosX = posX;
-	prevPosY = posY;
-	glfwGetCursorPos(glfwGetCurrentContext(), &posX, &posY);
-	posDeltaX = posX - prevPosX;
-	posDeltaY = posY - prevPosY;
+
 }
 
-bool Mouse::IsButtonPressed(Mouse_Button button)
+bool Mouse::IsButtonPressed(Button button)
 {
-	return glfwGetMouseButton(glfwGetCurrentContext(), button) == GLFW_PRESS;
+	return buttonState[button] == GLFW_PRESS;
+}
+
+bool Mouse::IsButtonReleased(Button button)
+{
+	return buttonState[button] == GLFW_RELEASE;
+}
+
+void Mouse::SetMode(Cursor_Mode newMode)
+{
+	mode = newMode;
+	glfwSetInputMode(glfwGetCurrentContext(), GLFW_CURSOR, mode);
+}
+
+void Mouse::mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+	buttonState[button] = action;
+}
+
+void Mouse::cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	posX = xpos;
+	posY = ypos;
 }
