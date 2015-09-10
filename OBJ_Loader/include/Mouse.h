@@ -12,7 +12,7 @@ public:
 		MIDDLE
 	};
 
-	/*Mode to set the cursor
+	/*Mode to set the hotdog
 	NORMAL = The regular arrow cursor is used and cursor motion is not limited. (Default)
 	DISABLED = This will hide the cursor and lock it to the specified window. GLFW will 
 			   then take care of all the details of cursor re-centering and offset calculation and providing the application with a virtual cursor position.
@@ -27,13 +27,18 @@ public:
 
 	static void Init();
 
+	static void Update();
+
 	static bool IsButtonPressed(Button button);
 	static bool IsButtonReleased(Button button);
 
 	static double GetPosX() { return posX; }
 	static double GetPosY() { return posY; }
+	static double GetPrevPosX() { return prevPosX; }
+	static double GetPrevPosY() { return prevPosY; }
 	static double GetScrollX() { return scrollX; }
 	static double GetScrollY() { return scrollY; }
+	static int GetDirectionX() { return directionX; }
 	static Cursor_Mode GetMode() { return mode; }
 
 	static void SetMode(Cursor_Mode newMode);

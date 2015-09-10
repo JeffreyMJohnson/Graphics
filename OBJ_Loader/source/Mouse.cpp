@@ -7,8 +7,6 @@ double Mouse::prevPosX = 0;
 double Mouse::prevPosY = 0;
 int Mouse::directionX = 0;
 int Mouse::directionY = 0;
-//int Mouse::xDirection = 0;
-//int Mouse::yDirection = 0;
 double Mouse::scrollX = 0;
 double Mouse::scrollY = 0;
 Mouse::Cursor_Mode Mouse::mode = Cursor_Mode::NORMAL;
@@ -21,6 +19,12 @@ void Mouse::Init()
 	glfwSetCursorPosCallback(glfwGetCurrentContext(), cursor_pos_callback);
 }
 
+void Mouse::Update()
+{
+	
+	
+
+}
 
 bool Mouse::IsButtonPressed(Button button)
 {
@@ -45,6 +49,20 @@ void Mouse::mouse_button_callback(GLFWwindow* window, int button, int action, in
 
 void Mouse::cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 {
+	prevPosX = posX;
+	prevPosY = posY;
 	posX = xpos;
 	posY = ypos;
+
+	double deltaX = posX - prevPosX;
+	
+	if (deltaX == 0)
+	{
+		directionX = 0;
+	}
+	else
+	{
+		directionX = (deltaX > 0) ? 1 : -1;
+	}
+	std::cout << "directionX: " << directionX << std::endl;
 }

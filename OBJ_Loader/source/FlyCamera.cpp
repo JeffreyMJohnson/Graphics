@@ -42,7 +42,7 @@ void FlyCamera::Translate(glm::vec3 distance)
 
 void FlyCamera::Update(float deltaTime)
 {
-	//Mouse::Update();
+	Mouse::Update();
 	glm::vec3 direction = glm::vec3(0);
 	if (Keyboard::IsKeyPressed(Keyboard::KEY_W) || Keyboard::IsKeyRepeat(Keyboard::KEY_W))
 	{
@@ -63,10 +63,22 @@ void FlyCamera::Update(float deltaTime)
 
 	Translate(deltaTime * mSpeed * direction);
 
+	int deltaX = Mouse::GetPosX() - Mouse::GetPrevPosX();
+	//std::cout << "directionX: " << Mouse::GetDirectionX() << " Prev: " << Mouse::GetPrevPosX() << " Current: " << Mouse::GetPosX() << std::endl;
+
 	if (Mouse::IsButtonPressed(Mouse::LEFT))
 	{
+		float angleY = 0;
 
-		Rotate(glm::radians(deltaTime * mRotSpeed * Mouse::GetPosX()), glm::vec3(0, 1, 0));
+		if (mCursorXPos == -1)
+		{
+			mCursorXPos = Mouse::GetPosX();
+		}
+		angleY = mCursorXPos - Mouse::GetPosX();
+
+
+		Rotate(glm::radians(deltaTime * angleY), glm::vec3(0, 1, 0));
+		angleY = 0;
 		//Rotate(glm::radians(deltaTime * mRotSpeed * Mouse::GetYDirection()), glm::vec3(1, 0, 0));
 		using namespace std;
 		//cout << "deltaX: " << Mouse::GetPosDeltaX() << endl;
@@ -85,7 +97,10 @@ void FlyCamera::Update(float deltaTime)
 		//}
 
 	}
-	std::cout << "posX: " << Mouse::GetPosX() << std::endl;
+	else
+	{
+		mCursorXPos = -1;
+	}
 	//std::cout << "W: " << Keyboard::IsKeyPressed(Keyboard::KEY_W) << std::endl;
 	//std::cout << "x: " << Mouse::GetPrevPosX() << std::endl;
 }
