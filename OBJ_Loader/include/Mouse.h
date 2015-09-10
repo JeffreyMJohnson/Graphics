@@ -53,6 +53,7 @@ private:
 	static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 	static void scroll_callback(GLFWwindow *w, double x, double y) { scrollX = x; scrollY = y; }
 	static void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos);
+	static bool isFirstMouse;
 
 
 

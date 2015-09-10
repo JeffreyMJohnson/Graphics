@@ -21,10 +21,11 @@ private:
 	float mRotSpeed = 1.0f;
 	glm::vec3 mUp;
 	GLFWwindow* mWindow = nullptr;
-	double mCursorXPos = -1;
-	double mCursorYPos = -1;
-	double mPrevMousePosX = 0;
-	double mPrevMousePosY = 0;
-	void HandleInput(float deltaTime);
+	double mCursorXPos = 0;
+	double mCursorYPos = 0;
+
+	double sensitivity = .005;
+	double pitch = 0; //rotate around x axis
+	double yaw = 0; //rotate around y axis
 
 };

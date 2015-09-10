@@ -5,6 +5,7 @@ FlyCamera::FlyCamera(GLFWwindow* window)
 {
 	mWindow = window;
 	Mouse::Init();
+	Mouse::SetMode(Mouse::Cursor_Mode::DISABLED);
 	Keyboard::Init();
 }
 
@@ -41,6 +42,7 @@ void FlyCamera::Translate(glm::vec3 distance)
 
 void FlyCamera::Update(float deltaTime)
 {
+	Mouse::Update();
 	glm::vec3 direction = glm::vec3(0);
 	if (Keyboard::IsKeyPressed(Keyboard::KEY_W) || Keyboard::IsKeyRepeat(Keyboard::KEY_W))
 	{
@@ -61,18 +63,42 @@ void FlyCamera::Update(float deltaTime)
 
 	Translate(deltaTime * mSpeed * direction);
 
+	int deltaX = Mouse::GetPosX() - Mouse::GetPrevPosX();
+	//std::cout << "directionX: " << Mouse::GetDirectionX() << " Prev: " << Mouse::GetPrevPosX() << " Current: " << Mouse::GetPosX() << std::endl;
+
 	if (Mouse::IsButtonPressed(Mouse::LEFT))
 	{
-		if (Mouse::GetPosDeltaX() != 0)
+		//double sensitivity = .005;
+		pitch = 0; //rotate around x axis
+		yaw = 0; //rotate around y axis
+
+		//calc mouse offset 
+		double deltaX = Mouse::GetPosX() - Mouse::GetPrevPosX();
+		double deltaY = Mouse::GetPosY() - Mouse::GetPrevPosY();//reversed because y is upper in gl
+
+		//add offset to yaw and pitch values
+		yaw += deltaX;
+		pitch += deltaY;
+
+
+		//constrain view to prevent hijinks
+		if (pitch > 89.0)
 		{
-			Rotate(glm::radians(deltaTime * mRotSpeed * Mouse::GetPosDeltaX()), glm::vec3(0, 1, 0));
+			pitch = 89.0;
 		}
-		if (Mouse::GetPosDeltaY() != 0)
+		if (pitch < -89.0)
 		{
-			Rotate(glm::radians(deltaTime * mRotSpeed * Mouse::GetPosDeltaY()), glm::vec3(1, 0, 0));
+			pitch = -89.0;
 		}
+		
+		Rotate(yaw * sensitivity, glm::vec3(0, 1, 0));
+		Rotate(pitch * sensitivity, glm::vec3(1, 0, 0));
 
 	}
-	//std::cout << "W: " << Keyboard::IsKeyPressed(Keyboard::KEY_W) << std::endl;
-	//std::cout << "x: " << Mouse::GetPrevPosX() << std::endl;
+	else
+	{
+		mCursorXPos = -1;
+		pitch = 0;
+		yaw = 0;
+	}
 }

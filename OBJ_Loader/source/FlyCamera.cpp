@@ -68,39 +68,37 @@ void FlyCamera::Update(float deltaTime)
 
 	if (Mouse::IsButtonPressed(Mouse::LEFT))
 	{
-		float angleY = 0;
+		//double sensitivity = .005;
+		pitch = 0; //rotate around x axis
+		yaw = 0; //rotate around y axis
 
-		if (mCursorXPos == -1)
+		//calc mouse offset 
+		double deltaX = Mouse::GetPosX() - Mouse::GetPrevPosX();
+		double deltaY = Mouse::GetPosY() - Mouse::GetPrevPosY();//reversed because y is upper in gl
+
+		//add offset to yaw and pitch values
+		yaw += deltaX;
+		pitch += deltaY;
+
+
+		//constrain view to prevent hijinks
+		if (pitch > 89.0)
 		{
-			mCursorXPos = Mouse::GetPosX();
+			pitch = 89.0;
 		}
-		angleY = mCursorXPos - Mouse::GetPosX();
-
-
-		Rotate(glm::radians(deltaTime * angleY), glm::vec3(0, 1, 0));
-		angleY = 0;
-		//Rotate(glm::radians(deltaTime * mRotSpeed * Mouse::GetYDirection()), glm::vec3(1, 0, 0));
-		using namespace std;
-		//cout << "deltaX: " << Mouse::GetPosDeltaX() << endl;
-
-		//int xDirection = 0;
-		//int yDirection = 0;
-		//if(Mouse::GetPosDeltaX() >)
-
-		//if ((int)Mouse::GetPosDeltaX() != 0)
-		//{
-		//	
-		//}
-		//if ((int)Mouse::GetPosDeltaY() != 0)
-		//{
-		//	Rotate(glm::radians(deltaTime * mRotSpeed * Mouse::GetPosDeltaY()), glm::vec3(1, 0, 0));
-		//}
+		if (pitch < -89.0)
+		{
+			pitch = -89.0;
+		}
+		
+		Rotate(yaw * sensitivity, glm::vec3(0, 1, 0));
+		Rotate(pitch * sensitivity, glm::vec3(1, 0, 0));
 
 	}
 	else
 	{
 		mCursorXPos = -1;
+		pitch = 0;
+		yaw = 0;
 	}
-	//std::cout << "W: " << Keyboard::IsKeyPressed(Keyboard::KEY_W) << std::endl;
-	//std::cout << "x: " << Mouse::GetPrevPosX() << std::endl;
 }

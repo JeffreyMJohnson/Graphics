@@ -24,6 +24,8 @@ private:
 	double mCursorXPos = 0;
 	double mCursorYPos = 0;
 
-	void HandleInput(float deltaTime);
+	double sensitivity = .005;
+	double pitch = 0; //rotate around x axis
+	double yaw = 0; //rotate around y axis
 
 };

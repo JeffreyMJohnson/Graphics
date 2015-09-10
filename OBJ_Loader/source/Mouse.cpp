@@ -11,6 +11,7 @@ double Mouse::scrollX = 0;
 double Mouse::scrollY = 0;
 Mouse::Cursor_Mode Mouse::mode = Cursor_Mode::NORMAL;
 int Mouse::buttonState[3];
+bool Mouse::isFirstMouse = true;
 
 void Mouse::Init()
 {
@@ -49,20 +50,16 @@ void Mouse::mouse_button_callback(GLFWwindow* window, int button, int action, in
 
 void Mouse::cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 {
+	if (isFirstMouse)
+	{
+		prevPosX = xpos;
+		prevPosY = ypos;
+		isFirstMouse = false;
+	}
+
 	prevPosX = posX;
 	prevPosY = posY;
 	posX = xpos;
 	posY = ypos;
 
-	double deltaX = posX - prevPosX;
-	
-	if (deltaX == 0)
-	{
-		directionX = 0;
-	}
-	else
-	{
-		directionX = (deltaX > 0) ? 1 : -1;
-	}
-	std::cout << "directionX: " << directionX << std::endl;
 }
