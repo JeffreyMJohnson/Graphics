@@ -26,14 +26,65 @@ bool OBJLoaderApp::StartUp()
 	}
 
 	//load model file
-	std::string err = tinyobj::LoadObj(shapes, materials, MODEL_FILE_PATH);
-	if (err.length() != 0)
+	//LoadOBJFile = false;
+	if (LoadOBJFile)
 	{
-		std::cout << "Error loading OBJ file:\n" << err << std::endl;
-		return false;
-	}
+		std::string err = tinyobj::LoadObj(shapes, materials, MODEL_FILE_PATH);
+		if (err.length() != 0)
+		{
+			std::cout << "Error loading OBJ file:\n" << err << std::endl;
+			return false;
+		}
 
-	CreateOpenGLBuffers(shapes);
+		CreateOpenGLBuffers(shapes);
+	}
+	//else
+	//{
+	//	//create sdk manager
+	//	FbxManager* myManager = FbxManager::Create();
+	//	
+	//	//create settings object
+	//	FbxIOSettings* ios = FbxIOSettings::Create(myManager, IOSROOT);
+
+	//	//set some settings
+	//	ios->SetBoolProp(IMP_FBX_MATERIAL, true);
+	//	ios->SetBoolProp(IMP_FBX_TEXTURE, true);
+
+	//	//create an empty scene
+	//	FbxScene* scene = FbxScene::Create(myManager, "");
+
+	//	//create importer
+	//	FbxImporter* importer = FbxImporter::Create(myManager, "");
+
+	//	//init importer
+	//	if (!importer->Initialize(FBX_MODEL_FILE_PATH, -1, ios))
+	//	{
+	//		std::cout << "FbxImporter->Initialize failed.\n";
+	//		std::cout << "Error returned: " << importer->GetStatus().GetErrorString() << std::endl;
+	//	}
+
+	//	//import the scene
+	//	importer->Import(scene);
+
+	//	CreateOpenGLBuffers(scene);
+
+	//	FbxNode* rootNode = scene->GetRootNode();
+	//	FbxMesh* mesh = rootNode->GetChild(0)->GetMesh();
+	//	std::cout << mesh->GetPolygonCount() << std::endl;
+
+
+	//	if (rootNode)
+	//	{
+	//		for (int i = 0; i < rootNode->GetChildCount(); i++)
+	//		{
+	//			PrintFBXNode(rootNode->GetChild(i));
+
+	//		}
+	//	}
+
+	//	//destroy the importer
+	//	importer->Destroy();
+	//}
 
 	InitCamera();
 
@@ -149,6 +200,56 @@ void OBJLoaderApp::InitCamera()
 	mCamera->SetLookAt(CAMERA_FROM, CAMERA_TO, CAMERA_UP);
 }
 
+//void OBJLoaderApp::CreateOpenGLBuffers(FbxScene* scene)
+//{
+//	FbxNode* rootNode = scene->GetRootNode();
+//	mGLInfo.resize(rootNode->GetChildCount());
+//
+//	
+//
+//	//for (uint meshIndex = 0; meshIndex < shapes.size(); ++meshIndex)
+//	for (uint meshIndex = 0; meshIndex < rootNode->GetChildCount(); ++meshIndex)
+//	{
+//		glGenVertexArrays(1, &mGLInfo[meshIndex].mVAO);
+//		glGenBuffers(1, &mGLInfo[meshIndex].mVBO);
+//		glGenBuffers(1, &mGLInfo[meshIndex].mIBO);
+//		glBindVertexArray(mGLInfo[meshIndex].mVAO);
+//
+//		FbxMesh* mesh = rootNode->GetChild(meshIndex)->GetMesh();
+//
+//		uint floatCount = mesh->mPolygonVertices.Size();
+//			//shapes[meshIndex].mesh.positions.size();
+//		floatCount += mesh->norm
+//			//shapes[meshIndex].mesh.normals.size();
+//		floatCount += shapes[meshIndex].mesh.texcoords.size();
+//
+//
+//		std::vector<float> vertexData;
+//		vertexData.reserve(floatCount);
+//
+//		vertexData.insert(vertexData.end(), shapes[meshIndex].mesh.positions.begin(), shapes[meshIndex].mesh.positions.end());
+//
+//		vertexData.insert(vertexData.end(), shapes[meshIndex].mesh.normals.begin(), shapes[meshIndex].mesh.normals.end());
+//
+//		mGLInfo[meshIndex].mIndexCount = shapes[meshIndex].mesh.indices.size();
+//
+//		glBindBuffer(GL_ARRAY_BUFFER, mGLInfo[meshIndex].mVBO);
+//		glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(float), vertexData.data(), GL_STATIC_DRAW);
+//
+//		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mGLInfo[meshIndex].mIBO);
+//		glBufferData(GL_ELEMENT_ARRAY_BUFFER, shapes[meshIndex].mesh.indices.size() * sizeof(uint), shapes[meshIndex].mesh.indices.data(), GL_STATIC_DRAW);
+//
+//		glEnableVertexAttribArray(0);//position
+//		glEnableVertexAttribArray(1);//normal data
+//
+//		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+//		glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, 0, (void*)(sizeof(float)*shapes[meshIndex].mesh.positions.size()));
+//
+//		glBindVertexArray(0);
+//		glBindBuffer(GL_ARRAY_BUFFER, 0);
+//		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+//	}
+//}
 
 void OBJLoaderApp::CreateOpenGLBuffers(std::vector<tinyobj::shape_t>& shapes)
 {
@@ -189,5 +290,79 @@ void OBJLoaderApp::CreateOpenGLBuffers(std::vector<tinyobj::shape_t>& shapes)
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	}
+}
+
+void OBJLoaderApp::PrintFBXNode(FbxNode* node)
+{
+	using namespace std;
+	const char* name = node->GetName();
+	FbxDouble3 translation = node->LclTranslation.Get();
+	FbxDouble3 rotation = node->LclRotation.Get();
+	FbxDouble3 scaling = node->LclScaling.Get();
+
+	// Print the contents of the node
+	printf("<node name='%s' translation='(%f,%f,%f)' rotation='(%f,%f,%f)' scaling='(%f,%f,%f)'>\n",
+		name,
+		translation[0], translation[1], translation[2],
+		rotation[0], rotation[1], rotation[2],
+		scaling[0], scaling[1], scaling[2]
+		);
+
+	// Print the node's attributes.
+	for (int i = 0; i < node->GetNodeAttributeCount(); i++)
+		PrintFBXAttribute(node->GetNodeAttributeByIndex(i));
+
+	// Recursively print the children.
+	for (int j = 0; j < node->GetChildCount(); j++)
+		PrintFBXNode(node->GetChild(j));
+
+	mNumTabs--;
+	PrintTabs();
+	printf("</node>\n");
+
+}
+
+void OBJLoaderApp::PrintFBXAttribute(FbxNodeAttribute* attribute)
+{
+	if (!attribute) return;
+
+	FbxString typeName = GetAttributeTypeName(attribute->GetAttributeType());
+	FbxString attrName = attribute->GetName();
+	PrintTabs();
+	// Note: to retrieve the character array of a FbxString, use its Buffer() method.
+	printf("<attribute type='%s' name='%s'/>\n", typeName.Buffer(), attrName.Buffer());
+
+}
+
+void OBJLoaderApp::PrintTabs()
+{
+	for (int i = 0; i < mNumTabs; i++)
+		printf("\t");
+}
+
+FbxString OBJLoaderApp::GetAttributeTypeName(FbxNodeAttribute::EType type) {
+	switch (type) {
+	case FbxNodeAttribute::eUnknown: return "unidentified";
+	case FbxNodeAttribute::eNull: return "null";
+	case FbxNodeAttribute::eMarker: return "marker";
+	case FbxNodeAttribute::eSkeleton: return "skeleton";
+	case FbxNodeAttribute::eMesh: return "mesh";
+	case FbxNodeAttribute::eNurbs: return "nurbs";
+	case FbxNodeAttribute::ePatch: return "patch";
+	case FbxNodeAttribute::eCamera: return "camera";
+	case FbxNodeAttribute::eCameraStereo: return "stereo";
+	case FbxNodeAttribute::eCameraSwitcher: return "camera switcher";
+	case FbxNodeAttribute::eLight: return "light";
+	case FbxNodeAttribute::eOpticalReference: return "optical reference";
+	case FbxNodeAttribute::eOpticalMarker: return "marker";
+	case FbxNodeAttribute::eNurbsCurve: return "nurbs curve";
+	case FbxNodeAttribute::eTrimNurbsSurface: return "trim nurbs surface";
+	case FbxNodeAttribute::eBoundary: return "boundary";
+	case FbxNodeAttribute::eNurbsSurface: return "nurbs surface";
+	case FbxNodeAttribute::eShape: return "shape";
+	case FbxNodeAttribute::eLODGroup: return "lodgroup";
+	case FbxNodeAttribute::eSubDiv: return "subdiv";
+	default: return "unknown";
 	}
 }
