@@ -57,4 +57,6 @@ private:
 	void InitCamera();
 	//void CreateOpenGLBuffers(std::vector<tinyobj::shape_t>& shapes);
 	void CreateBuffers();
+
+
 };
