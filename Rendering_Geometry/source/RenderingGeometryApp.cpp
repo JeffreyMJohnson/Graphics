@@ -26,80 +26,19 @@ bool RenderingGeometryApp::StartUp()
 	}
 
 	InitCamera();
-
-	// create shaders
-	const char* vsSource = "#version 330\n \
-							layout(location=0) in vec4 Position; \
-							layout(location=1) in vec4 Colour; \
-							out vec4 vColour; \
-							uniform mat4 ProjectionView; \
-							void main() \
-							{ \
-								vColour = Colour; \
-								gl_Position = ProjectionView * Position;\
-							}";
-
-	const char* shader2 = "#version 330\n \
-							layout(location=0) in vec4 Position; \
-							layout(location=1) in vec4 Colour; \
-							out vec4 vColour; \
-							uniform mat4 ProjectionView; \
-							uniform float time; \
-							uniform float heightScale; \
-							void main() \
-							{ \
-								vColour = Colour; \
-								vec4 P = Position; \
-								P.y += sin(time + Position.x) * heightScale; \
-								gl_Position = ProjectionView * P;\
-							}";
-
-	const char* fsSource = "#version 330\n \
-							in vec4 vColour; \
-							out vec4 FragColor; \
-							void main() \
-							{\
-								FragColor = vColour;\
-							}";
-
-	int success = GL_FALSE;
-	uint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	uint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	//glShaderSource(vertexShader, 1, (const char**)&vsSource, 0);
-	glShaderSource(vertexShader, 1, (const char**)&shader2, 0);
-	glCompileShader(vertexShader);
-	glShaderSource(fragmentShader, 1, (const char**)&fsSource, 0);
-	glCompileShader(fragmentShader);
-
-	mShaderProgramID = glCreateProgram();
-	glAttachShader(mShaderProgramID, vertexShader);
-	glAttachShader(mShaderProgramID, fragmentShader);
-	glLinkProgram(mShaderProgramID);
-
-	glGetProgramiv(mShaderProgramID, GL_LINK_STATUS, &success);
-	if (success == GL_FALSE) {
-		int infoLogLength = 0;
-		glGetProgramiv(mShaderProgramID, GL_INFO_LOG_LENGTH, &infoLogLength);
-		char* infoLog = new char[infoLogLength];
-		glGetProgramInfoLog(mShaderProgramID, infoLogLength, 0, infoLog);
-		printf("Error: Failed to link shader program!\n");
-		printf("%s\n", infoLog);
-		delete[] infoLog;
-	}
-	glDeleteShader(fragmentShader);
-	glDeleteShader(vertexShader);
+// create shaders
+	mShader->LoadShader("../Rendering_Geometry/source/Simple_Vertex_Shader.glsl", "../Rendering_Geometry/source/Simple_Fragment_Shader.glsl");
+	mShader->LoadShader("../Rendering_Geometry/source/Vertex_Shader_2.glsl", "../Rendering_Geometry/source/Simple_Fragment_Shader.glsl");
 
 
 	GenerateGrid(ROWS, COLS);
-
-	glUseProgram(mShaderProgramID);
-	uint projectionViewUniform = glGetUniformLocation(mShaderProgramID, "ProjectionView");
-	uint timeUniform = glGetUniformLocation(mShaderProgramID, "time");
-	uint heightScaleUniform = glGetUniformLocation(mShaderProgramID, "heightScale");
-	glUniformMatrix4fv(projectionViewUniform, 1, false, glm::value_ptr(mCamera->GetProjection() * mCamera->GetView()));
-	glUniform1f(timeUniform, timer.DeltaTime);
-	glUniform1f(heightScaleUniform, 0.0f);
 	glBindVertexArray(mVAO);
+	glUseProgram(mShader->GetProgram());
+	mShader->SetUniform("ProjectionView", Shader::MAT4, glm::value_ptr(mCamera->GetProjection() * mCamera->GetView()));
+	mShader->SetUniform("time", Shader::FLO1, &timer.DeltaTime);
+	float height = .5f;
+	mShader->SetUniform("heightScale", Shader::FLO1, &height);
+	
 
 
 
@@ -122,6 +61,7 @@ bool RenderingGeometryApp::StartUp()
 void RenderingGeometryApp::ShutDown()
 {
 	delete mCamera;
+	delete mShader;
 	glfwDestroyWindow(mWindow);
 	glfwTerminate();
 }
@@ -134,6 +74,7 @@ bool RenderingGeometryApp::Update()
 	}
 	timer.Update(glfwGetTime());
 	mCamera->Update(timer.DeltaTime);
+	mShader->SetUniform("time", Shader::FLO1, &timer.CurrentTime);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
@@ -144,7 +85,9 @@ void RenderingGeometryApp::Draw()
 {
 	uint indexCount = (ROWS - 1) * (COLS - 1) * 6;
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	uint projectionViewUniform = glGetUniformLocation(mShaderProgramID, "ProjectionView");
+
+
+	uint projectionViewUniform = glGetUniformLocation(mShader->GetProgram(), "ProjectionView");
 	glUniformMatrix4fv(projectionViewUniform, 1, false, glm::value_ptr(mCamera->GetProjection() * mCamera->GetView()));
 	glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
 	glfwSwapBuffers(mWindow);
