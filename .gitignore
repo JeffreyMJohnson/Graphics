@@ -43,7 +43,7 @@ dlldata.c
 *_i.h
 *.ilk
 *.meta
-*.obj
+#*.obj removed to support .obj graphics files
 *.pch
 *.pdb
 *.pgc

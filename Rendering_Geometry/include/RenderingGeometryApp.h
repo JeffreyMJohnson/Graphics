@@ -18,6 +18,8 @@ struct Vertex
 class RenderingGeometryApp : public GameApp
 {
 public:
+	
+
 	const int WINDOW_WIDTH = 1280;
 	const int WINDOW_HEIGHT = 720;
 	const char* WINDOW_TITLE = "Rendering Geometry";
@@ -46,4 +48,6 @@ private:
 	const uint COLS = 25;
 	void InitCamera();
 	void GenerateGrid(uint rows, uint cols);
+
+	void LoadGLBuffer(Vertex* vertices, uint verticesSize, uint* indeces, uint indecesCount);
 };
