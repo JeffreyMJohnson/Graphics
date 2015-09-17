@@ -5,7 +5,6 @@
 #include "FlyCamera.h"
 #include "Keyboard.h"
 #include "tiny_obj_loader\tiny_obj_loader.h"
-#include "fbxsdk.h"
 
 using glm::vec3;
 using glm::vec4;

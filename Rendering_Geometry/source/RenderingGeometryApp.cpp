@@ -162,7 +162,8 @@ void RenderingGeometryApp::InitCamera()
 
 void RenderingGeometryApp::GenerateGrid(uint rows, uint cols)
 {
-	Vertex* vertices = new Vertex[rows * cols];
+	uint verticesSize = rows * cols;
+	Vertex* vertices = new Vertex[verticesSize];
 	for (uint r = 0; r < rows; r++)
 	{
 		for (uint c = 0; c < cols; c++)
@@ -174,8 +175,8 @@ void RenderingGeometryApp::GenerateGrid(uint rows, uint cols)
 			vertices[r*cols + c].color = vec4(color, 1);
 		}
 	}
-
-	uint* indeces = new uint[(rows - 1) * (cols - 1) * 6];
+	uint indecesCount = (rows - 1) * (cols - 1) * 6;
+	uint* indeces = new uint[indecesCount];
 	uint index = 0;
 	for (uint r = 0; r < (rows - 1); r++)
 	{
@@ -194,28 +195,31 @@ void RenderingGeometryApp::GenerateGrid(uint rows, uint cols)
 	}
 
 	//create and bind buffers to a VAO
-	glGenBuffers(1, &mVBO);
-	glGenBuffers(1, &mIBO);
-	glGenVertexArrays(1, &mVAO);
+	LoadGLBuffer(vertices, verticesSize, indeces, indecesCount);
 
+	delete[] vertices;
+	delete[] indeces;
+}
+
+void RenderingGeometryApp::LoadGLBuffer(Vertex* vertices, uint verticesSize, uint* indeces, uint indecesCount)
+{
+	glGenVertexArrays(1, &mVAO);
 	glBindVertexArray(mVAO);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, (rows - 1)*(cols - 1) * 6 * sizeof(uint), indeces, GL_STATIC_DRAW);
-
-
+	glGenBuffers(1, &mVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO);
-	glBufferData(GL_ARRAY_BUFFER, (rows * cols) * sizeof(Vertex), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, verticesSize * sizeof(Vertex), vertices, GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(vec4)));
 
+	glGenBuffers(1, &mIBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indecesCount * sizeof(uint), indeces, GL_STATIC_DRAW);
+
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	delete[] vertices;
-	delete[] indeces;
 }
