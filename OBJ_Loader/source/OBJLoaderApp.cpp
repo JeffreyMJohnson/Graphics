@@ -26,8 +26,8 @@ bool OBJLoaderApp::StartUp()
 	}
 
 	//load model file
-	LoadGeometry(OBJ_MODEL_FILE_PATH);
-	//LoadGeometry(FBX_MODEL_FILE_PATH);
+	//LoadGeometry(OBJ_MODEL_FILE_PATH);
+	LoadGeometry(FBX_MODEL_FILE_PATH);
 
 	InitCamera();
 
