@@ -26,8 +26,8 @@ bool OBJLoaderApp::StartUp()
 	}
 
 	//load model file
-	//LoadGeometry(OBJ_MODEL_FILE_PATH);
-	LoadGeometry(FBX_MODEL_FILE_PATH);
+	LoadGeometry(OBJ_MODEL_FILE_PATH);
+	//LoadGeometry(FBX_MODEL_FILE_PATH);
 
 	InitCamera();
 
@@ -247,7 +247,7 @@ bool OBJLoaderApp::LoadGeometry(const char * path)
 	GLInfo renderObject;
 	LoadGLBuffers(renderObject, geometry);
 	mGLInfo.push_back(renderObject);
-
+	
 	return true;
 }
 

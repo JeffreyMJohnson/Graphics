@@ -76,11 +76,5 @@ private:
 	bool LoadGeometry(const char* path);
 	//Geometry& LoadGeometry(const char* path);
 	bool LoadGLBuffers(OpenGLInfo& renderObject, const Geometry& geometry);
-	//void CreateOpenGLBuffers(std::vector<tinyobj::shape_t>& shapes);
-	//void CreateOpenGLBuffers(FbxScene* scene);
-	//void PrintFBXNode(FbxNode* node);
-	//void PrintFBXAttribute(FbxNodeAttribute* attribute);
-	//void PrintTabs();
-	//FbxString GetAttributeTypeName(FbxNodeAttribute::EType type);
 	
 };
