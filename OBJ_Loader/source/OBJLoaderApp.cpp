@@ -26,65 +26,8 @@ bool OBJLoaderApp::StartUp()
 	}
 
 	//load model file
-	//LoadOBJFile = false;
-	if (LoadOBJFile)
-	{
-		std::string err = tinyobj::LoadObj(shapes, materials, MODEL_FILE_PATH);
-		if (err.length() != 0)
-		{
-			std::cout << "Error loading OBJ file:\n" << err << std::endl;
-			return false;
-		}
-
-		CreateOpenGLBuffers(shapes);
-	}
-	//else
-	//{
-	//	//create sdk manager
-	//	FbxManager* myManager = FbxManager::Create();
-	//	
-	//	//create settings object
-	//	FbxIOSettings* ios = FbxIOSettings::Create(myManager, IOSROOT);
-
-	//	//set some settings
-	//	ios->SetBoolProp(IMP_FBX_MATERIAL, true);
-	//	ios->SetBoolProp(IMP_FBX_TEXTURE, true);
-
-	//	//create an empty scene
-	//	FbxScene* scene = FbxScene::Create(myManager, "");
-
-	//	//create importer
-	//	FbxImporter* importer = FbxImporter::Create(myManager, "");
-
-	//	//init importer
-	//	if (!importer->Initialize(FBX_MODEL_FILE_PATH, -1, ios))
-	//	{
-	//		std::cout << "FbxImporter->Initialize failed.\n";
-	//		std::cout << "Error returned: " << importer->GetStatus().GetErrorString() << std::endl;
-	//	}
-
-	//	//import the scene
-	//	importer->Import(scene);
-
-	//	CreateOpenGLBuffers(scene);
-
-	//	FbxNode* rootNode = scene->GetRootNode();
-	//	FbxMesh* mesh = rootNode->GetChild(0)->GetMesh();
-	//	std::cout << mesh->GetPolygonCount() << std::endl;
-
-
-	//	if (rootNode)
-	//	{
-	//		for (int i = 0; i < rootNode->GetChildCount(); i++)
-	//		{
-	//			PrintFBXNode(rootNode->GetChild(i));
-
-	//		}
-	//	}
-
-	//	//destroy the importer
-	//	importer->Destroy();
-	//}
+	LoadGeometry(OBJ_MODEL_FILE_PATH);
+	//LoadGeometry(FBX_MODEL_FILE_PATH);
 
 	InitCamera();
 
@@ -200,6 +143,194 @@ void OBJLoaderApp::InitCamera()
 	mCamera->SetLookAt(CAMERA_FROM, CAMERA_TO, CAMERA_UP);
 }
 
+bool OBJLoaderApp::LoadGeometry(const char * path)
+{
+	bool success = true;
+	//find extension
+	std::string sPath(path);
+	std::string ext = sPath.substr(sPath.find_last_of('.'));
+
+	Geometry geometry;
+
+	if (ext == ".obj")
+	{
+		std::vector<tinyobj::shape_t> shapes;
+		std::vector<tinyobj::material_t> materials;
+		std::string err = tinyobj::LoadObj(shapes, materials, path);
+		if (err.length() != 0)
+		{
+			std::cout << "Error loading OBJ file:\n" << err << std::endl;
+			success = false;
+		}
+
+		//hard coding only using first shape, can change to loop here
+		if (success)
+		{
+			auto shape = shapes[0];
+			auto mesh = shape.mesh;
+
+			geometry.vertices.resize(mesh.positions.size());
+
+			uint posIndex = 0;
+			uint normalIndex = 0;
+			uint UVIndex = 0;
+			bool hasNormals = mesh.normals.size() == mesh.positions.size();
+			bool hasUVs = mesh.texcoords.size() == mesh.positions.size();
+			//obj has vectors of floats, my struct and shaders uses glm vecs so need to build myself
+			for (uint vertexCount = 0; posIndex < mesh.positions.size(); vertexCount++)
+			{
+				float x = mesh.positions[posIndex++];
+				float y = mesh.positions[posIndex++];
+				float z = mesh.positions[posIndex++];
+				geometry.vertices[vertexCount].postion = vec4(x, y, z, 1);
+
+				if (hasNormals)
+				{
+					x = mesh.normals[normalIndex++];
+					y = mesh.normals[normalIndex++];
+					z = mesh.normals[normalIndex++];
+					geometry.vertices[vertexCount].normal = vec4(x, y, z, 1);
+				}
+
+				if (hasUVs)
+				{
+					x = mesh.texcoords[UVIndex++];
+					y = mesh.texcoords[UVIndex++];
+					geometry.vertices[vertexCount].UV = vec2(x, y);
+				}
+			}
+
+			geometry.indices = mesh.indices;
+		}
+	}
+	else if (ext == ".fbx")
+	{
+
+
+		FBXFile file;
+		success = file.load(path, FBXFile::UNITS_METER, false, false, false);
+		if (!success)
+		{
+			std::cout << "Error loading FBX file:\n";
+		}
+		else
+		{
+			//hardcoding to use single mesh, can loop here if needed.
+			FBXMeshNode* mesh = file.getMeshByIndex(0);
+			geometry.vertices.resize(mesh->m_vertices.size());
+
+			for (int i = 0; i < mesh->m_vertices.size();i++)
+			{
+				auto xVert = mesh->m_vertices[i];
+				geometry.vertices[i].postion = xVert.position;
+				geometry.vertices[i].color = xVert.colour;
+				geometry.vertices[i].normal = xVert.normal;
+				geometry.vertices[i].UV = xVert.texCoord1;
+			}
+
+			geometry.indices = mesh->m_indices;
+
+			file.unload();
+		}
+
+	}
+	else
+	{
+		std::cout << "Unsupported format. Only support .obj or .fbx files.\n";
+		success = false;
+	}
+	if (!success)
+	{
+		return false;
+	}
+
+	GLInfo renderObject;
+	LoadGLBuffers(renderObject, geometry);
+	mGLInfo.push_back(renderObject);
+
+	return true;
+}
+
+bool OBJLoaderApp::LoadGLBuffers(OpenGLInfo & renderObject, const Geometry & geometry)
+{
+	glGenVertexArrays(1, &renderObject.mVAO);
+	glGenBuffers(1, &renderObject.mVBO);
+	glGenBuffers(1, &renderObject.mIBO);
+
+	glBindVertexArray(renderObject.mVAO);
+
+	//uint floatCount = shapes[meshIndex].mesh.positions.size();
+	//floatCount += shapes[meshIndex].mesh.normals.size();
+	//floatCount += shapes[meshIndex].mesh.texcoords.size();
+
+	renderObject.mIndexCount = geometry.indices.size();
+
+	glBindBuffer(GL_ARRAY_BUFFER, renderObject.mVBO);
+	glBufferData(GL_ARRAY_BUFFER, geometry.vertices.size() * sizeof(Vertex), geometry.vertices.data(), GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderObject.mIBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, geometry.indices.size() * sizeof(uint), geometry.indices.data(), GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(0);//position
+	glEnableVertexAttribArray(1);//color in shader right now.
+	//glEnableVertexAttribArray(2);//normal
+	//glEnableVertexAttribArray(3);//UV coord
+
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
+	//THIS NEEDS TO BE CHANGED WHEN SHADER IS UPDATED
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(vec4) * 2));// 1));
+	//glVertexAttribPointer(2, 4, GL_FLOAT, GL_TRUE, sizeof(Vertex), (void*)(sizeof(vec4) * 2));
+	//glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(vec4) * 3));
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	return true;
+}
+
+/*
+void OBJLoaderApp::CreateOpenGLBuffers(std::vector<tinyobj::shape_t>& shapes)
+{
+	mGLInfo.resize(shapes.size());
+
+	for (uint meshIndex = 0; meshIndex < shapes.size(); ++meshIndex)
+	{
+		glGenVertexArrays(1, &mGLInfo[meshIndex].mVAO);
+		glGenBuffers(1, &mGLInfo[meshIndex].mVBO);
+		glGenBuffers(1, &mGLInfo[meshIndex].mIBO);
+		glBindVertexArray(mGLInfo[meshIndex].mVAO);
+
+		uint floatCount = shapes[meshIndex].mesh.positions.size();
+		floatCount += shapes[meshIndex].mesh.normals.size();
+		floatCount += shapes[meshIndex].mesh.texcoords.size();
+
+		std::vector<float> vertexData;
+		vertexData.reserve(floatCount);
+
+		vertexData.insert(vertexData.end(), shapes[meshIndex].mesh.positions.begin(), shapes[meshIndex].mesh.positions.end());
+
+		vertexData.insert(vertexData.end(), shapes[meshIndex].mesh.normals.begin(), shapes[meshIndex].mesh.normals.end());
+
+		mGLInfo[meshIndex].mIndexCount = shapes[meshIndex].mesh.indices.size();
+
+		glBindBuffer(GL_ARRAY_BUFFER, mGLInfo[meshIndex].mVBO);
+		glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(float), vertexData.data(), GL_STATIC_DRAW);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mGLInfo[meshIndex].mIBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, shapes[meshIndex].mesh.indices.size() * sizeof(uint), shapes[meshIndex].mesh.indices.data(), GL_STATIC_DRAW);
+
+		glEnableVertexAttribArray(0);//position
+		glEnableVertexAttribArray(1);//normal data
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, 0, (void*)(sizeof(float)*shapes[meshIndex].mesh.positions.size()));
+
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	}
+}
+*/
 //void OBJLoaderApp::CreateOpenGLBuffers(FbxScene* scene)
 //{
 //	FbxNode* rootNode = scene->GetRootNode();
@@ -251,48 +382,9 @@ void OBJLoaderApp::InitCamera()
 //	}
 //}
 
-void OBJLoaderApp::CreateOpenGLBuffers(std::vector<tinyobj::shape_t>& shapes)
-{
-	mGLInfo.resize(shapes.size());
 
-	for (uint meshIndex = 0; meshIndex < shapes.size(); ++meshIndex)
-	{
-		glGenVertexArrays(1, &mGLInfo[meshIndex].mVAO);
-		glGenBuffers(1, &mGLInfo[meshIndex].mVBO);
-		glGenBuffers(1, &mGLInfo[meshIndex].mIBO);
-		glBindVertexArray(mGLInfo[meshIndex].mVAO);
 
-		uint floatCount = shapes[meshIndex].mesh.positions.size();
-		floatCount += shapes[meshIndex].mesh.normals.size();
-		floatCount += shapes[meshIndex].mesh.texcoords.size();
-
-		std::vector<float> vertexData;
-		vertexData.reserve(floatCount);
-
-		vertexData.insert(vertexData.end(), shapes[meshIndex].mesh.positions.begin(), shapes[meshIndex].mesh.positions.end());
-
-		vertexData.insert(vertexData.end(), shapes[meshIndex].mesh.normals.begin(), shapes[meshIndex].mesh.normals.end());
-
-		mGLInfo[meshIndex].mIndexCount = shapes[meshIndex].mesh.indices.size();
-
-		glBindBuffer(GL_ARRAY_BUFFER, mGLInfo[meshIndex].mVBO);
-		glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(float), vertexData.data(), GL_STATIC_DRAW);
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mGLInfo[meshIndex].mIBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, shapes[meshIndex].mesh.indices.size() * sizeof(uint), shapes[meshIndex].mesh.indices.data(), GL_STATIC_DRAW);
-
-		glEnableVertexAttribArray(0);//position
-		glEnableVertexAttribArray(1);//normal data
-
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, 0, (void*)(sizeof(float)*shapes[meshIndex].mesh.positions.size()));
-
-		glBindVertexArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	}
-}
-
+/*
 void OBJLoaderApp::PrintFBXNode(FbxNode* node)
 {
 	using namespace std;
@@ -342,6 +434,8 @@ void OBJLoaderApp::PrintTabs()
 }
 
 FbxString OBJLoaderApp::GetAttributeTypeName(FbxNodeAttribute::EType type) {
+
+
 	switch (type) {
 	case FbxNodeAttribute::eUnknown: return "unidentified";
 	case FbxNodeAttribute::eNull: return "null";
@@ -366,3 +460,4 @@ FbxString OBJLoaderApp::GetAttributeTypeName(FbxNodeAttribute::EType type) {
 	default: return "unknown";
 	}
 }
+*/
