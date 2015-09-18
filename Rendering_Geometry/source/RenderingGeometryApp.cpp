@@ -27,7 +27,7 @@ bool RenderingGeometryApp::StartUp()
 
 	InitCamera();
 // create shaders
-	mShader->LoadShader("../Rendering_Geometry/source/Simple_Vertex_Shader.glsl", "../Rendering_Geometry/source/Simple_Fragment_Shader.glsl");
+	//mShader->LoadShader("../Rendering_Geometry/source/Simple_Vertex_Shader.glsl", "../Rendering_Geometry/source/Simple_Fragment_Shader.glsl");
 	mShader->LoadShader("../Rendering_Geometry/source/Vertex_Shader_2.glsl", "../Rendering_Geometry/source/Simple_Fragment_Shader.glsl");
 
 
@@ -86,9 +86,9 @@ void RenderingGeometryApp::Draw()
 	uint indexCount = (ROWS - 1) * (COLS - 1) * 6;
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-
-	uint projectionViewUniform = glGetUniformLocation(mShader->GetProgram(), "ProjectionView");
-	glUniformMatrix4fv(projectionViewUniform, 1, false, glm::value_ptr(mCamera->GetProjection() * mCamera->GetView()));
+	mShader->SetUniform("ProjectionView", Shader::MAT4, glm::value_ptr(mCamera->GetProjection() * mCamera->GetView()));
+	/*uint projectionViewUniform = glGetUniformLocation(mShader->GetProgram(), "ProjectionView");
+	glUniformMatrix4fv(projectionViewUniform, 1, false, glm::value_ptr(mCamera->GetProjection() * mCamera->GetView()));*/
 	glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
 	glfwSwapBuffers(mWindow);
 	glfwPollEvents();
